@@ -8,6 +8,9 @@ package tallyproject;
 /**
  *
  * @author Rahul Sinha
+ * 
+ * This Class Keeps on Searching for net and uploading DATA
+ * 
  */
 public class UpProcess implements Runnable{
     Thread t;

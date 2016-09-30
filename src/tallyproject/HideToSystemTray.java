@@ -74,6 +74,7 @@ public class HideToSystemTray extends JFrame{
         setIconImage(Toolkit.getDefaultToolkit().getImage("Icon.jpg"));
 
         exhideInTray();
+        removeFromTray();
     }
     public void hideInTray(){
         try {

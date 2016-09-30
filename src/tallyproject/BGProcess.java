@@ -18,6 +18,8 @@ import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 /**
  *
  * @author Rahul Sinha
+ * 
+ * This Class searches for any recent uploads of vouchers
  */
 public class BGProcess implements Runnable{
     Thread t;

@@ -33,12 +33,14 @@ import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 import org.apache.xmlbeans.XmlObject;
 import java.util.*;
 import javax.swing.JButton;
+import javax.swing.JDialog;
 import javax.swing.JFrame;
 import javax.swing.JMenu;
 import javax.swing.JMenuBar;
 import javax.swing.JMenuItem;
 import javax.swing.JOptionPane;
 import javax.swing.JTextArea;
+import javax.swing.WindowConstants;
 /**
  *
  * @author Rahul Sinha
@@ -50,6 +52,7 @@ public class TallyProject {
      */
     public static String path;
     public static Vector<DATA> data;
+    public static Vector<Company> company;
     public static String UrlLink="http://tallyproject1.hol.es/";
     public static boolean init=true;
     public static BGProcess bgp;
@@ -62,6 +65,21 @@ public class TallyProject {
             DataInputStream db=new DataInputStream(new FileInputStream("path.txt"));
             path=db.readLine().trim();
             db.close();
+            
+            company=new Vector<Company>();
+            db=new DataInputStream(new FileInputStream("Company.txt"));
+            while(db.available()>0){
+                company.add(new Company(db));
+            }
+            //company.add(new Company("Rahul", "asf","hasjkf"));
+            //company.add(new Company("Yo Yo", "asf","hasjkf"));
+            /*company.add(new Company("Fuck", "asf","hasjkf"));
+            company.add(new Company("MF", "asf","hasjkf"));
+            company.add(new Company("Sunny", "asf","hasjkf"));
+            company.add(new Company("Lion", "asf","hasjkf"));
+            company.add(new Company("Hello", "asf","hasjkf"));*/
+            db.close();
+            
             db=new DataInputStream(new FileInputStream("init.txt"));
             String in=db.readLine().trim();
             if(in.equals("true"))
@@ -222,17 +240,36 @@ public class TallyProject {
         menuItem1.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
-                
+                JDialog jd=new JDialog(jf,"Initialize Server",true);
+                InitializeServer addCompany=new InitializeServer();
+                jd.add(addCompany);
+                jd.setSize(200,200);
+                jd.setVisible(true);
+                jd.setDefaultCloseOperation(WindowConstants.DISPOSE_ON_CLOSE);
             }
         });
         menuItem2.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
+                JDialog jd=new JDialog(jf,"Add a Company",true);
+                AddCompany addCompany=new AddCompany();
+                jd.add(addCompany);
+                jd.setSize(400,175);
+                jd.setResizable(false);
+                jd.setVisible(true);
+                jd.setDefaultCloseOperation(WindowConstants.DISPOSE_ON_CLOSE);
             }
         });
         menuItem3.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
+                JDialog jd=new JDialog(jf,"View Companies",true);
+                RemoveCompany addCompany=new RemoveCompany();
+                jd.add(addCompany);
+                jd.setSize(400,300);
+                jd.setResizable(false);
+                jd.setVisible(true);
+                jd.setDefaultCloseOperation(WindowConstants.DISPOSE_ON_CLOSE);               
             }
         });
     }
