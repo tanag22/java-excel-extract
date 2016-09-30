@@ -55,6 +55,7 @@ public class TallyProject {
     public static Vector<Company> company;
     public static String UrlLink="http://tallyproject1.hol.es/";
     public static BGProcess bgp;
+    public static UpProcess2 ugp;
     static HideToSystemTray jf;
     public static JTextArea jta;
     public static JButton jvb;
@@ -100,21 +101,8 @@ public class TallyProject {
         }
         extractLedgerGroup();
 
-        while(true){
-            try{
-                //jprintln("Wait");
-                if(checkEmpty())
-                    break;
-                jprintln("Uploading the Ledgers and Group Data ...");
-                for(int i=0;i<data.size();i++){
-                    data.get(i).uploadData();
-                }
-                Thread.sleep(1000);
-            }catch(Exception ex){
-                jprintln("Error53 :"+ex.getMessage());
-            }
-        }
-        
+        ugp=new UpProcess2("Initiation Server");
+        ugp.start();        
     }
 
     public void runVoucherextraction(){
@@ -347,9 +335,11 @@ public class TallyProject {
                 if(rowIterator.hasNext()){
                     Row row = rowIterator.next();
                     Iterator<Cell> cellIterator = row.cellIterator();
-                    Cell cell = cellIterator.next();
-                    cell.setCellType(Cell.CELL_TYPE_STRING);
-                    company=cell.getStringCellValue().trim();
+                    if(cellIterator.hasNext()){
+                        Cell cell = cellIterator.next();
+                        cell.setCellType(Cell.CELL_TYPE_STRING);
+                        company=cell.getStringCellValue().trim();
+                    }
                 }
                 while (rowIterator.hasNext()) { 
                     Row row = rowIterator.next();
@@ -383,6 +373,8 @@ public class TallyProject {
             }
             myWorkBook.close();
             myFile.delete();
+            for(int i=0;i<data.size();i++)
+                data.get(i).printData();
         }catch(Exception ex){
             //System.out.println("Error3 :"+ex.getMessage());
             jprintln("Error3 :"+ex.getMessage());

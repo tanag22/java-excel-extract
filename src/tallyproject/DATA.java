@@ -68,7 +68,7 @@ public class DATA{
     }
     public void uploadData(){
         
-        String urlL=TallyProject.UrlLink+"uploadInit.php";
+        String urlL=TallyProject.UrlLink+"php/uploadInit.php";
         if(!isUpl){
             String table=checkCompany();
             if(table!=null){
