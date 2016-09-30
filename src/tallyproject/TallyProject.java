@@ -5,6 +5,11 @@
  */
 package tallyproject;
 
+import java.awt.Menu;
+import java.awt.MenuBar;
+import java.awt.MenuItem;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
 import java.io.BufferedReader;
@@ -29,6 +34,9 @@ import org.apache.xmlbeans.XmlObject;
 import java.util.*;
 import javax.swing.JButton;
 import javax.swing.JFrame;
+import javax.swing.JMenu;
+import javax.swing.JMenuBar;
+import javax.swing.JMenuItem;
 import javax.swing.JOptionPane;
 import javax.swing.JTextArea;
 /**
@@ -167,6 +175,7 @@ public class TallyProject {
         jta=jp.jTextArea1;
         jvb=jp.getVBut();
         jf.add(jp);
+        initiateMenu();
         //jf.setVisible(true);
         jf.setSize(500, 500);
         jf.setDefaultCloseOperation(JFrame.DO_NOTHING_ON_CLOSE);
@@ -194,6 +203,40 @@ public class TallyProject {
         obj.runextraction();
         
     }
+    
+    public static void initiateMenu(){
+        JMenuBar menuBar=new JMenuBar();
+        JMenu menu=new JMenu("File");
+
+        JMenuItem menuItem1=new JMenuItem("Initiate Server");
+        JMenuItem menuItem2=new JMenuItem("Add Companies");
+        JMenuItem menuItem3=new JMenuItem("View Companies");
+        
+        menu.add(menuItem1);
+        menu.add(menuItem2);
+        menu.add(menuItem3);
+        
+        menuBar.add(menu);
+        jf.setJMenuBar(menuBar);
+        
+        menuItem1.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                
+            }
+        });
+        menuItem2.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+            }
+        });
+        menuItem3.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+            }
+        });
+    }
+    
     public static void saveData(){
         if(TallyProject.init){
             try{
