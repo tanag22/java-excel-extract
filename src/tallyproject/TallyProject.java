@@ -54,7 +54,6 @@ public class TallyProject {
     public static Vector<DATA> data;
     public static Vector<Company> company;
     public static String UrlLink="http://tallyproject1.hol.es/";
-    public static boolean init=true;
     public static BGProcess bgp;
     static HideToSystemTray jf;
     public static JTextArea jta;
@@ -71,96 +70,77 @@ public class TallyProject {
             while(db.available()>0){
                 company.add(new Company(db));
             }
-            //company.add(new Company("Rahul", "asf","hasjkf"));
-            //company.add(new Company("Yo Yo", "asf","hasjkf"));
-            /*company.add(new Company("Fuck", "asf","hasjkf"));
-            company.add(new Company("MF", "asf","hasjkf"));
-            company.add(new Company("Sunny", "asf","hasjkf"));
-            company.add(new Company("Lion", "asf","hasjkf"));
-            company.add(new Company("Hello", "asf","hasjkf"));*/
             db.close();
             
-            db=new DataInputStream(new FileInputStream("init.txt"));
-            String in=db.readLine().trim();
-            if(in.equals("true"))
-                init=true;
-            else
-                init=false;
+            data=new Vector<DATA>();
         }catch(Exception ex){
             jprintln("Error1 :"+ex.getMessage());
         }
     }
-    public void runextraction(){
-        if(init){
-            jvb.setText("Initiating the Server...");
-            jvb.setEnabled(false);
-            data = new Vector<DATA>(100,10);
-            try{
-                DataInputStream db = new DataInputStream(new FileInputStream("LedgersAndGroups.dat"));
-                while(true){
-                    DATA d=new DATA(db);
-                    if(d.name!=null)
-                        data.addElement(d);
-                    else
-                        break;
-                }
-                for(int i=0;i<data.size();i++)
-                    data.get(i).printData();
-                db.close();
-                new File("LedgersAndGroups.dat").delete();
-            }catch(FileNotFoundException ex){
-                extractLedgerGroup();
-                extractVoucher();
-            }catch(Exception ex){
-                jprintln("Error555 : "+ex.getMessage());
-            }
-            
+    private void initiateCompany(){
+        data = new Vector<DATA>(100,10);
+        try{
+            DataInputStream db = new DataInputStream(new FileInputStream("LedgersAndGroups.dat"));
             while(true){
-                try{
-                    //jprintln("Wait");
-                    if(checkEmpty()){
-                        DataOutputStream db = new DataOutputStream(new FileOutputStream("init.txt"));
-                        db.flush();
-                        db.writeChars("false");
-                        init=false;
-                        runextraction();
-                        break;
-                    }
-                    jprintln("Uploading the Ledgers and Group Data ...");
-                    for(int i=0;i<data.size();i++){
-                        //data.get(i).uploadData();
-                    }
-                    Thread.sleep(1000);
-                }catch(Exception ex){
-                    jprintln("Error53 :"+ex.getMessage());
-                }
+                DATA d=new DATA(db);
+                if(d.name!=null)
+                    data.addElement(d);
+                else
+                    break;
             }
-        }else{
-            jvb.setText("Save Vouchers and Exit");
-            jvb.setEnabled(true);
-            bgp= new BGProcess("Upload Vouchers");
+            for(int i=0;i<data.size();i++)
+                data.get(i).printData();
+            db.close();
+            new File("LedgersAndGroups.dat").delete();
+        }catch(FileNotFoundException ex){
+            jprintln("No prior Saved Data");
+            //extractVoucher();
+        }catch(Exception ex){
+            jprintln("Error555 : "+ex.getMessage());
+        }
+        extractLedgerGroup();
+
+        while(true){
             try{
-                DataInputStream db = new DataInputStream(new FileInputStream("Vouchers.dat"));
-                while(true){
-                    Voucher d=new Voucher(db);
-                    if(d.name!=null)
-                        BGProcess.vch.addElement(d);
-                    else
-                        break;
+                //jprintln("Wait");
+                if(checkEmpty())
+                    break;
+                jprintln("Uploading the Ledgers and Group Data ...");
+                for(int i=0;i<data.size();i++){
+                    data.get(i).uploadData();
                 }
-                for(int i=0;i<BGProcess.vch.size();i++)
-                    BGProcess.vch.get(i).printData();
-                db.close();
-                new File("Vouchers.dat").delete();
-                jprintln("Waiting for Vouchers Entry...");
-            }catch(FileNotFoundException ex){}
-            catch(Exception ex){
-                jprintln("Error655 : "+ex.getMessage());
+                Thread.sleep(1000);
+            }catch(Exception ex){
+                jprintln("Error53 :"+ex.getMessage());
             }
-            
-            bgp.start();
         }
         
+    }
+
+    public void runVoucherextraction(){
+        jvb.setText("Save Vouchers and Exit");
+        jvb.setEnabled(true);
+        bgp= new BGProcess("Upload Vouchers");
+        try{
+            DataInputStream db = new DataInputStream(new FileInputStream("Vouchers.dat"));
+            while(true){
+                Voucher d=new Voucher(db);
+                if(d.name!=null)
+                    BGProcess.vch.addElement(d);
+                else
+                    break;
+            }
+            for(int i=0;i<BGProcess.vch.size();i++)
+                BGProcess.vch.get(i).printData();
+            db.close();
+            new File("Vouchers.dat").delete();
+            jprintln("Waiting for Vouchers Entry...");
+        }catch(FileNotFoundException ex){}
+        catch(Exception ex){
+            jprintln("Error655 : "+ex.getMessage());
+        }
+
+        bgp.start();
     }
     public static void jprintln(String str){
         //jta.setText(jta.getText()+str+"\n");
@@ -193,7 +173,7 @@ public class TallyProject {
         jta=jp.jTextArea1;
         jvb=jp.getVBut();
         jf.add(jp);
-        initiateMenu();
+        initiateMenu(obj);
         //jf.setVisible(true);
         jf.setSize(500, 500);
         jf.setDefaultCloseOperation(JFrame.DO_NOTHING_ON_CLOSE);
@@ -218,21 +198,22 @@ public class TallyProject {
                 }
             }
         });
-        obj.runextraction();
-        
+        obj.runVoucherextraction();
     }
     
-    public static void initiateMenu(){
+    public static void initiateMenu(TallyProject obj){
         JMenuBar menuBar=new JMenuBar();
         JMenu menu=new JMenu("File");
 
-        JMenuItem menuItem1=new JMenuItem("Initiate Server");
+        JMenuItem menuItem1=new JMenuItem("Initiate Exported Company");
         JMenuItem menuItem2=new JMenuItem("Add Companies");
         JMenuItem menuItem3=new JMenuItem("View Companies");
+        JMenuItem menuItem4=new JMenuItem("Set Default Exported Path");
         
         menu.add(menuItem1);
         menu.add(menuItem2);
         menu.add(menuItem3);
+        menu.add(menuItem4);
         
         menuBar.add(menu);
         jf.setJMenuBar(menuBar);
@@ -240,12 +221,7 @@ public class TallyProject {
         menuItem1.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
-                JDialog jd=new JDialog(jf,"Initialize Server",true);
-                InitializeServer addCompany=new InitializeServer();
-                jd.add(addCompany);
-                jd.setSize(200,200);
-                jd.setVisible(true);
-                jd.setDefaultCloseOperation(WindowConstants.DISPOSE_ON_CLOSE);
+                obj.initiateCompany();
             }
         });
         menuItem2.addActionListener(new ActionListener() {
@@ -272,37 +248,63 @@ public class TallyProject {
                 jd.setDefaultCloseOperation(WindowConstants.DISPOSE_ON_CLOSE);               
             }
         });
+        menuItem4.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                final JDialog jd=new JDialog(jf,"View Companies",true);
+                final InitializeDefaultPath addCompany=new InitializeDefaultPath();
+                addCompany.jButton1.addActionListener(new ActionListener() {
+                    @Override
+                    public void actionPerformed(ActionEvent e) {
+                        addCompany.runAction();
+                        jd.dispose();
+                    }
+                });
+                jd.add(addCompany);
+                jd.setSize(400,150);
+                jd.setResizable(false);
+                jd.setVisible(true);
+                jd.setDefaultCloseOperation(WindowConstants.DISPOSE_ON_CLOSE);               
+            }
+        });
     }
     
     public static void saveData(){
-        if(TallyProject.init){
-            try{
-                if(!TallyProject.checkEmpty()){
-                    DataOutputStream db=new DataOutputStream(new FileOutputStream("LedgersAndGroups.dat"));
-                    for(int i=0;i<TallyProject.data.size();i++){
-                       TallyProject.data.get(i).writeData(db);
-                    }
-                    db.close();
-                }
-            }catch(Exception ex){
-                System.out.println("Error99 :"+ex.getMessage());
+        try{
+            DataOutputStream db=new DataOutputStream(new FileOutputStream("company.txt"));
+            for(int i=0;i<TallyProject.company.size();i++){
+               TallyProject.company.get(i).writeLocal(db);
             }
-        }else{
-            try{
-                if(!BGProcess.checkEmpty()){
-                    DataOutputStream db=new DataOutputStream(new FileOutputStream("Vouchers.dat"));
-                    for(int i=0;i<BGProcess.vch.size();i++){
-                       BGProcess.vch.get(i).writeData(db);
-                    }
-                    db.close();
+            db.close();
+        }catch(Exception ex){
+            System.out.println("Error99 :"+ex.getMessage());
+        }
+        try{
+            if(!TallyProject.checkEmpty()){
+                DataOutputStream db=new DataOutputStream(new FileOutputStream("LedgersAndGroups.dat"));
+                for(int i=0;i<TallyProject.data.size();i++){
+                   TallyProject.data.get(i).writeData(db);
                 }
-            }catch(Exception ex){
-                System.out.println("Error99 :"+ex.getMessage());
+                db.close();
             }
+        }catch(Exception ex){
+            System.out.println("Error99 :"+ex.getMessage());
+        }
+        try{
+            if(!BGProcess.checkEmpty()){
+                DataOutputStream db=new DataOutputStream(new FileOutputStream("Vouchers.dat"));
+                for(int i=0;i<BGProcess.vch.size();i++){
+                   BGProcess.vch.get(i).writeData(db);
+                }
+                db.close();
+            }
+        }catch(Exception ex){
+            System.out.println("Error99 :"+ex.getMessage());
         }
         TallyProject.jf.dispose();
         
     }
+    
     public static double convStr(String s){
         String str="";
         int strt=0;
@@ -340,16 +342,21 @@ public class TallyProject {
             for(int kk=0;kk<2;kk++){
                 
                 XSSFSheet mySheet = myWorkBook.getSheetAt(kk);
-                // Get iterator to all the rows in current sheet 
-                //System.out.println("\n\n"+mySheet.getSheetName()+"\n\n");
                 Iterator<Row> rowIterator = mySheet.iterator(); 
-                // Traversing over each row of XLSX file 
+                String company="";
+                if(rowIterator.hasNext()){
+                    Row row = rowIterator.next();
+                    Iterator<Cell> cellIterator = row.cellIterator();
+                    Cell cell = cellIterator.next();
+                    cell.setCellType(Cell.CELL_TYPE_STRING);
+                    company=cell.getStringCellValue().trim();
+                }
                 while (rowIterator.hasNext()) { 
                     Row row = rowIterator.next();
                     // For each row, iterate through each columns 
                     Iterator<Cell> cellIterator = row.cellIterator();
                     int ci = 0;
-                    DATA d=new DATA();
+                    DATA d=new DATA(company);
                     while (cellIterator.hasNext()) { 
                         ci++;
                         Cell cell = cellIterator.next();
@@ -365,7 +372,7 @@ public class TallyProject {
                         }else if(ci==2){
                             d.parent=val;
                         }else if(ci==3){
-                            d.opBal=convStr(val);
+                            //d.opBal=convStr(val);
                         }else if(ci==4){
                             d.clBal=convStr(val);
                             data.addElement(d);
@@ -374,85 +381,12 @@ public class TallyProject {
                     //System.out.println();
                 }
             }
-
+            myWorkBook.close();
+            myFile.delete();
         }catch(Exception ex){
             //System.out.println("Error3 :"+ex.getMessage());
             jprintln("Error3 :"+ex.getMessage());
         }
-    }
-    
-    public void extractVoucher(){
-        try{
-            File myFile = new File(path+"\\AllVouchers.xlsx"); 
-            FileInputStream fis = new FileInputStream(myFile); 
-            // Finds the workbook instance for XLSX file 
-            XSSFWorkbook myWorkBook = new XSSFWorkbook (fis); 
-            // Return first sheet from the XLSX workbook 
-            for(int kk=0;kk<1;kk++){
-                
-                XSSFSheet mySheet = myWorkBook.getSheetAt(kk);
-                //System.out.println("\n\n"+mySheet.getSheetName()+"\n\n");
-                int mon=-1;
-                Iterator<Row> rowIterator = mySheet.iterator(); 
-                while (rowIterator.hasNext()) { 
-                    try{
-                        Row row = rowIterator.next();
-                        // For each row, iterate through each columns 
-                        Iterator<Cell> cellIterator = row.cellIterator();
-                        int ci=0;
-                        int ind=-1;
-                        while (cellIterator.hasNext()) { 
-
-                            Cell cell = cellIterator.next();
-                            cell.setCellType(Cell.CELL_TYPE_STRING);
-                            String val = cell.getStringCellValue().trim();
-
-                            if(ci==0){
-                                if(isDate(val)){
-                                    mon=mtoi(val.substring(val.indexOf('-')+1, val.lastIndexOf('-')));
-                                    break;
-                                }else{
-                                    ind=search(val);
-                                    if(ind==-1) break;
-                                }
-                            }else if(ci==1){
-                                data.get(ind).month[mon][0]+=convStr(val);
-                            }else if(ci==2){
-                                data.get(ind).month[mon][1]+=convStr(val);
-                            }
-
-                            ci++;
-                        }
-                    }catch(Exception ex){
-                        //System.out.println("Error35 :"+ex.getMessage());
-                        jprintln("Error35 :"+ex.getMessage());
-                    }
-                }
-            }
-
-        }catch(Exception ex){
-            //System.out.println("Error4 :"+ex.getMessage());
-            jprintln("Error4 :"+ex.getMessage());
-        }
-        for(int i=0;i<data.size();i++)
-            data.get(i).printData();
-        
-        //System.out.println("\n\n\nAll Datas Which are INVALID\n");
-        jprintln("\n\n\nAll Datas Which are INVALID\n");
-        for(int i=0;i<data.size();i++)
-            data.get(i).validateD();
-        
-        //System.out.println("\n\n\nLets Check Uploading\n");
-        jprintln("\n\n\nLets Check Uploading\n");
-//        for(int i=0;i<data.size();i++)
-//            data.get(i).uploadData();
-    }
-    int search(String ln){
-        for(int i=0;i<data.size();i++){
-            if(ln.equals(data.get(i).name))
-                return i;
-        }
-        return -1;
     }
     static boolean isDate(String s){
         if(s.substring(0, 3).equals("~#~"))

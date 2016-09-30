@@ -12,39 +12,36 @@ import java.io.InputStreamReader;
 import java.net.HttpURLConnection;
 import java.net.URL;
 import java.net.URLEncoder;
+import java.text.DateFormat;
+import java.text.SimpleDateFormat;
+import java.util.Calendar;
 
 /**
  *
  * @author Rahul Sinha
  */
 public class DATA{
+    String company;
     String name,parent;
-    double opBal,clBal;
+    double clBal;
     boolean isLedger;
-    double month[][];
     boolean isUpl=false;
-    public DATA(){
+    public DATA(String comp){
+        company=comp;
         name="";
         parent="";
-        opBal=0.0;
         clBal=0.0;
         isLedger=true;
-        month=new double[12][2];
     }
     public DATA(DataInputStream db){
-        month=new double[12][2];
         try{
+            company=db.readUTF();
             name=db.readUTF();
             if(name==null)
                 return;
             parent=db.readUTF();
-            opBal=db.readDouble();
             clBal=db.readDouble();
             isLedger=db.readBoolean();
-            for(int i=0;i<12;i++){
-                month[i][0]=db.readDouble();
-                month[i][1]=db.readDouble();
-            }
         }catch(Exception ex){
             //System.out.println("Error :"+ex.getMessage());
             //TallyProject.jprintln("Error :"+ex.getMessage());
@@ -53,15 +50,11 @@ public class DATA{
     public void writeData(DataOutputStream db){
         try{
             if(!isUpl){
+                db.writeUTF(company);
                 db.writeUTF(name);
                 db.writeUTF(parent);
-                db.writeDouble(opBal);
                 db.writeDouble(clBal);
                 db.writeBoolean(isLedger);
-                for(int i=0;i<12;i++){
-                    db.writeDouble(month[i][0]);
-                    db.writeDouble(month[i][1]);
-                }
             }
         }catch(Exception ex){
             //System.out.println("Error5 :"+ex.getMessage());
@@ -71,54 +64,63 @@ public class DATA{
     }
     public void printData(){
         //System.out.print(name+"\t"+parent+"\t"+opBal+"\t"+clBal+"\t");
-        TallyProject.jprint(name+"\t"+parent+"\t"+opBal+"\t"+clBal+"\t");
-        for(int i=0;i<12;i++){
-            //System.out.print("Month "+i+" : "+month[i][0]+" , "+month[i][1]+"\t");
-            TallyProject.jprint("Month "+i+" : "+month[i][0]+" , "+month[i][1]+"\t");
-        }
-        //System.out.println();
-        TallyProject.jprintln();
+        TallyProject.jprint(company+"\t"+name+"\t"+parent+"\t"+clBal+"\t");
     }
     public void uploadData(){
+        
         String urlL=TallyProject.UrlLink+"uploadInit.php";
         if(!isUpl){
-            try{
-                StringBuffer sb=new StringBuffer(urlL);
-                sb.append(aStr(true,"name",name))
-                        .append(aStr(false,"parent",parent))
-                        .append(aStr(false, "opBal", String.valueOf(opBal)))
-                        .append(aStr(false, "clBal", String.valueOf(clBal)))
-                        .append(aStr(false, "isLedger", String.valueOf(isLedger)));
-                for(int i=0;i<12;i++){
-                    sb.append(aStr(false, itom(i)+"Dr", String.valueOf(month[i][0])))
-                            .append(aStr(false, itom(i)+"Cr", String.valueOf(month[i][1])));
-                }
-                URL url = new URL(sb.toString());
-                HttpURLConnection hup = (HttpURLConnection) url.openConnection();
-                hup.setRequestMethod("GET");
+            String table=checkCompany();
+            if(table!=null){
+                try{
+                    StringBuffer sb=new StringBuffer(urlL);
+                    sb.append(aStr(true,"name",name))
+                            .append(aStr(false,"company",table))
+                            .append(aStr(false,"parent",parent))
+                            .append(aStr(false, "clBal", String.valueOf(clBal)))
+                            .append(aStr(false, "date", getDate()))
+                            .append(aStr(false, "isLedger", String.valueOf(isLedger)));
+                    URL url = new URL(sb.toString());
+                    HttpURLConnection hup = (HttpURLConnection) url.openConnection();
+                    hup.setRequestMethod("GET");
 
-                BufferedReader br = new BufferedReader(new InputStreamReader(hup.getInputStream()));
-                if(!br.readLine().trim().equals("Success")){
-                    //System.out.print(" Error  : ");
-                    TallyProject.jprint(" Error  : ");
+                    BufferedReader br = new BufferedReader(new InputStreamReader(hup.getInputStream()));
+                    if(!br.readLine().trim().equals("Success")){
+                        //System.out.print(" Error  : ");
+                        TallyProject.jprint(" Error  : ");
+                        printData();
+                    }else{
+                        //System.out.println(name+" --  Success");
+                        TallyProject.jprintln(name+" --  Success");
+                        isUpl=true;
+                    }
+
+                }catch(Exception ex){
+                    //System.out.println("Error56: "+ex.getMessage());
+                    TallyProject.jprintln("Error56: "+ex.getMessage());
+                    //System.out.print("The error is ");
+                    TallyProject.jprint("The error is ");
                     printData();
-                }else{
-                    //System.out.println(name+" --  Success");
-                    TallyProject.jprintln(name+" --  Success");
-                    isUpl=true;
                 }
-
-            }catch(Exception ex){
-                //System.out.println("Error56: "+ex.getMessage());
-                TallyProject.jprintln("Error56: "+ex.getMessage());
-                //System.out.print("The error is ");
-                TallyProject.jprint("The error is ");
-                printData();
             }
+        }else{
+            TallyProject.jprint("The Company is not Registered in the software");
         }
     }
+    private String checkCompany(){
+        for(int i=0;i<TallyProject.company.size();i++){
+            Company comp=TallyProject.company.get(i);
+            if(comp.name.equals(company))
+                return comp.uname;
+        }
+        return null;
+    }
     
-    
+    public String getDate(){
+        SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy/MM/dd");
+        Calendar cal = Calendar.getInstance();
+        return dateFormat.format(cal.getTime());
+    }
     public String aStr(boolean first,String data,String val){
         String str="";
         try{
@@ -132,17 +134,6 @@ public class DATA{
             TallyProject.jprintln("Error55 : "+ex.getMessage());
         }
         return str;
-    }
-    public boolean validateD(){
-        double sum=opBal;
-        for(int i=0;i<12;i++){
-            sum+=(month[i][0]-month[i][1]);
-        }
-        if(checkEq(sum) || !isLedger)
-            return true;
-        //System.out.println(name+"\t"+parent+"\t"+opBal+"\t"+clBal+"\t"+sum);
-        TallyProject.jprintln(name+"\t"+parent+"\t"+opBal+"\t"+clBal+"\t"+sum);
-        return false;
     }
     boolean checkEq(double s){
         //long sum = Math.abs(Math.round(s));

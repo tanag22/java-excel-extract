@@ -103,7 +103,7 @@ public class AddCompany extends javax.swing.JPanel {
     private void jButton1ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButton1ActionPerformed
         jButton1.setEnabled(false);
         jLabel4.setText("Loadin...");
-        Company c=Company.checkCompany(jTextField1.getText().toString(), jTextField1.getText().toString());
+        Company c=Company.checkCompany(jTextField1.getText().toString(), jTextField2.getText().toString());
         if(c!=null){
             TallyProject.company.add(c);
             JOptionPane.showMessageDialog(this, "The Company "+c.name+" is Successfully Added");

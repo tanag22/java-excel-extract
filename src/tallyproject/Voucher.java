@@ -18,11 +18,11 @@ import java.net.URLEncoder;
  * @author Rahul Sinha
  */
 public class Voucher{
-    String month,name;
+    String date,name,company;
     double dr,cr;
     boolean isUpl=false;
-    public Voucher(String mon, String n){
-        month=mon;
+    public Voucher(String date, String n, String company){
+        //month=mon;
         name=n;
     }
     
@@ -31,7 +31,8 @@ public class Voucher{
             name=db.readUTF();
             if(name==null)
                 return;
-            month=db.readUTF();
+            company=db.readUTF();
+            date=db.readUTF();
             dr=db.readDouble();
             cr=db.readDouble();
         }catch(Exception ex){
@@ -43,7 +44,8 @@ public class Voucher{
     public void writeData(DataOutputStream db){
         try{
             db.writeUTF(name);
-            db.writeUTF(month);
+            db.writeUTF(company);
+            db.writeUTF(date);
             db.writeDouble(dr);
             db.writeDouble(cr);
         }catch(Exception ex){
@@ -52,14 +54,17 @@ public class Voucher{
         }
     }
     public void uploadData(){
+        
+        //Send Date
+        
         String urlL=TallyProject.UrlLink+"upload.php";
         if(!isUpl){
             try{
                 StringBuffer sb=new StringBuffer(urlL);
-                sb.append(aStr(true,"month",month))
+                sb.append(aStr(true,"date",date))
+                        .append(aStr(false,"company",company))
                         .append(aStr(false,"name",name))
-                        .append(aStr(false, "dr", String.valueOf(dr)))
-                        .append(aStr(false, "cr", String.valueOf(cr)));
+                        .append(aStr(false, "change", String.valueOf((dr-cr))));
                 URL url = new URL(sb.toString());
                 HttpURLConnection hup = (HttpURLConnection) url.openConnection();
                 hup.setRequestMethod("GET");
@@ -101,7 +106,7 @@ public class Voucher{
     public void printData(){
         if(!isUpl)
         //System.out.println(month+"\t"+name+"\t"+dr+"\t"+cr+"\t");
-        TallyProject.jprintln(month+"\t"+name+"\t"+dr+"\t"+cr+"\t");
+        TallyProject.jprintln(date+"\t"+name+"\t"+dr+"\t"+cr+"\t");
     }
     
 }

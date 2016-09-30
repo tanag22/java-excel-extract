@@ -50,7 +50,7 @@ public class Company {
 //        jd.add(jpb);
 //        jd.setVisible(true);
         
-        String urlL=TallyProject.UrlLink+"validUser.php";
+        String urlL=TallyProject.UrlLink+"php/validUser.php";
         try{
             StringBuffer sb=new StringBuffer(urlL);
             sb.append(aStr(true,"user",user))
@@ -63,22 +63,21 @@ public class Company {
             Company comp=new Company();
             String val =br.readLine();
             //jd.dispose();
-            if(val.equals("LOL")){
-                return null;
-            }else{
+            if(val.equals("Success")){
+                val =br.readLine();
                 comp.name=val;
                 val =br.readLine();
                 comp.uname=val;
                 val =br.readLine();
                 comp.owner=val;
                 return comp;
+            }else{
+                TallyProject.jprintln("ErrorX: "+val);
+                return null;
             }
 
         }catch(Exception ex){
-            //System.out.println("Error7: "+ex.getMessage());
-            TallyProject.jprintln("Error7: "+ex.getMessage());
-            //System.out.print("The error is ");
-            TallyProject.jprint("The error is ");
+            TallyProject.jprintln("ErrorX: "+ex.getMessage());
         }
         //jd.dispose();
         return null;

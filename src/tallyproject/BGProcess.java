@@ -8,6 +8,8 @@ package tallyproject;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
+import java.text.SimpleDateFormat;
+import java.util.Date;
 import java.util.Iterator;
 import java.util.Vector;
 import org.apache.poi.ss.usermodel.Cell;
@@ -75,7 +77,8 @@ public class BGProcess implements Runnable{
                 
                 XSSFSheet mySheet = myWorkBook.getSheetAt(kk);
                 //System.out.println("\n\n"+mySheet.getSheetName()+"\n\n");
-                String mon="";
+                String date="";
+                String company="";
                 Iterator<Row> rowIterator = mySheet.iterator(); 
                 while (rowIterator.hasNext()) { 
                     try{
@@ -92,10 +95,19 @@ public class BGProcess implements Runnable{
 
                             if(ci==0){
                                 if(TallyProject.isDate(val)){
-                                    mon=val.substring(val.indexOf('-')+1, val.lastIndexOf('-'));
+                                    String day=val.substring(3, val.indexOf('-'));
+                                    String mon=val.substring(val.indexOf('-')+1, val.lastIndexOf('-'));
+                                    String year=val.substring(val.lastIndexOf('-')+1, val.length());
+                                    date=year+"/"+(TallyProject.mtoi(mon)+1)+"/"+day;
+                                    Date d=new Date(Integer.parseInt(year)-1900,TallyProject.mtoi(mon),Integer.parseInt(day));
+                                    SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy/MM/dd");
+                                    date = dateFormat.format(d);
+                                    cell = cellIterator.next();
+                                    cell.setCellType(Cell.CELL_TYPE_STRING);
+                                    company = cell.getStringCellValue().trim();
                                     break;
                                 }else{
-                                    vch.addElement(new Voucher(mon,val));
+                                    vch.addElement(new Voucher(date,val,company));
                                 }
                             }else if(ci==1){
                                 vch.get(vch.size()-1).dr=TallyProject.convStr(val);
